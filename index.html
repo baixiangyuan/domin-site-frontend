@@ -190,6 +190,12 @@ transition:all 0.3s;
 <div class="form-group"><label>角色</label><input id="me-role" readonly style="opacity:0.4"></div>
 <div class="form-group"><label>注册时间</label><input id="me-date" readonly style="opacity:0.4"></div>
 <button class="btn btn-primary" id="btn-save"><i class="fas fa-save"></i> 保存</button>
+
+<h3 style="margin-top:28px;margin-bottom:14px;font-size:0.95em;color:var(--danger)"><i class="fas fa-key"></i> 修改密码</h3>
+<div class="form-group"><label>原密码</label><input id="pw-old" type="password"></div>
+<div class="form-group"><label>新密码</label><input id="pw-new" type="password"></div>
+<div class="form-group"><label>验证码</label><div class="code-row"><input id="pw-code" placeholder="邮箱验证码"><button class="code-btn" onclick="sendAuthCode()">发送</button></div></div>
+<button class="btn btn-danger" onclick="doChangePw()"><i class="fas fa-check"></i> 修改密码</button>
 </div></div>
 <div id="tab-adm" class="tab-c">
 <div class="tabs">
@@ -241,6 +247,8 @@ function updEdType(){var t=document.getElementById("m-ed-t").value,l=document.ge
 function doEd(){var m=document.getElementById("m-edit"),dom=m.dataset.dom,sub=m.dataset.sub,tp=document.getElementById("m-ed-t").value,tgt=document.getElementById("m-ed-tgt").value.trim();if(!tgt)return toast("目标不能为空","error");api("/api/subdomains/"+dom+"/"+sub+"/edit",{method:"PUT",body:JSON.stringify({recordType:tp,target:tgt})}).then(function(){toast("已更新","success");closeM("m-edit");loadMy()}).catch(function(e){toast(e.message,"error")})}
 function loadMe(){if(!me)return;document.getElementById("me-user").value=me.username;document.getElementById("me-email").value=me.email||"";document.getElementById("me-role").value=me.role==="admin"?"管理员":"用户";document.getElementById("me-date").value=new Date(me.createdAt).toLocaleString("zh-CN")}
 function saveMe(){api("/api/profile",{method:"PUT",body:JSON.stringify({email:document.getElementById("me-email").value})}).then(function(){toast("已保存","success")}).catch(function(e){toast(e.message,"error")})}
+function sendAuthCode(){api("/api/send-auth-code",{method:"POST"}).then(function(d){toast(d.message,"success")}).catch(function(e){toast(e.message,"error")})}
+function doChangePw(){var oldPw=document.getElementById("pw-old").value,newPw=document.getElementById("pw-new").value,cd=document.getElementById("pw-code").value.trim();if(!oldPw||!newPw||!cd)return toast("请填完整","error");api("/api/change-password",{method:"POST",body:JSON.stringify({oldPassword:oldPw,newPassword:newPw,code:cd})}).then(function(){toast("修改成功","success")}).catch(function(e){toast(e.message,"error")})}
 function loadAdm(){loadAU();api("/api/stats").then(function(s){}).catch(function(){})}
 function loadAU(){api("/api/admin/users").then(function(d){aUsers=d.users||[];renderAU(aUsers)}).catch(function(e){toast(e.message,"error")})}
 function renderAU(u){var b=document.getElementById("au-body");b.innerHTML=u.map(function(x){return "<tr><td><strong>"+x.username+"</strong>"+(x.role==="admin"?" <span class=\"badge badge-info\">Admin</span>":"")+"</td><td>"+(x.email||"\u2014")+"</td><td><span class=\"badge badge-warning\">"+(x.maxDomains||5)+"</span></td><td>"+x.subdomainCount+"</td><td>"+(x.banned?"<span class=\"badge badge-danger\">封禁</span>":"<span class=\"badge badge-success\">正常</span>")+"</td><td>"+(x.username!=="admin"?"<button class=\"btn btn-sm btn-ghost\" data-pts=\""+x.username+"\"><i class=\"fas fa-globe\"></i></button> <button class=\"btn btn-sm btn-"+(x.banned?"primary":"danger")+"\" data-ban=\""+x.username+"\">"+(x.banned?"解封":"封禁")+"</button>":"")+"</td></tr>"}).join("")}
