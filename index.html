@@ -247,7 +247,31 @@ function updEdType(){var t=document.getElementById("m-ed-t").value,l=document.ge
 function doEd(){var m=document.getElementById("m-edit"),dom=m.dataset.dom,sub=m.dataset.sub,tp=document.getElementById("m-ed-t").value,tgt=document.getElementById("m-ed-tgt").value.trim();if(!tgt)return toast("目标不能为空","error");api("/api/subdomains/"+dom+"/"+sub+"/edit",{method:"PUT",body:JSON.stringify({recordType:tp,target:tgt})}).then(function(){toast("已更新","success");closeM("m-edit");loadMy()}).catch(function(e){toast(e.message,"error")})}
 function loadMe(){if(!me)return;document.getElementById("me-user").value=me.username;document.getElementById("me-email").value=me.email||"";document.getElementById("me-role").value=me.role==="admin"?"管理员":"用户";document.getElementById("me-date").value=new Date(me.createdAt).toLocaleString("zh-CN")}
 function saveMe(){api("/api/profile",{method:"PUT",body:JSON.stringify({email:document.getElementById("me-email").value})}).then(function(){toast("已保存","success")}).catch(function(e){toast(e.message,"error")})}
-function sendAuthCode(){api("/api/send-auth-code",{method:"POST"}).then(function(d){toast(d.message,"success")}).catch(function(e){toast(e.message,"error")})}
+function sendAuthCode(){
+  var btn = event.target;
+  var em = document.getElementById("me-email").value.trim();
+  if(!em) return toast("请先填写邮箱", "error");
+  btn.disabled = true;
+  var s = 60;
+  btn.textContent = s + "s";
+  var timer = setInterval(function(){
+    s--;
+    btn.textContent = s + "s";
+    if(s <= 0){
+      clearInterval(timer);
+      btn.disabled = false;
+      btn.textContent = "发送";
+    }
+  }, 1000);
+  api("/api/send-auth-code", {method:"POST"}).then(function(d){
+    toast(d.message, "success");
+  }).catch(function(e){
+    toast(e.message, "error");
+    clearInterval(timer);
+    btn.disabled = false;
+    btn.textContent = "发送";
+  });
+}
 function doChangePw(){var oldPw=document.getElementById("pw-old").value,newPw=document.getElementById("pw-new").value,cd=document.getElementById("pw-code").value.trim();if(!oldPw||!newPw||!cd)return toast("请填完整","error");api("/api/change-password",{method:"POST",body:JSON.stringify({oldPassword:oldPw,newPassword:newPw,code:cd})}).then(function(){toast("修改成功","success")}).catch(function(e){toast(e.message,"error")})}
 function loadAdm(){loadAU();api("/api/stats").then(function(s){}).catch(function(){})}
 function loadAU(){api("/api/admin/users").then(function(d){aUsers=d.users||[];renderAU(aUsers)}).catch(function(e){toast(e.message,"error")})}
